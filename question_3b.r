@@ -5,8 +5,9 @@ train <- function(n){
 	line <- perceptron(n,1,0.1); 
 	a <- line$coeff1; 
 	b <- line$coeff2;
-	isect <- get_intersections(2,0.5);
-	return (c(isect,error_prob_13(isect$y1,isect$y2,isect$x0,isect$case)));
+	isect <- get_intersections(a,b);
+	#return (c(isect,error_prob_1321(isect$y1,isect$y2,isect$x0,isect$case)));	
+	return(error_prob_1321(isect$y1,isect$y2,isect$x0,isect$case));
 }
 
 get_intersections <- function(a,b){
@@ -65,16 +66,18 @@ error_prob_1321 <- function(y1,y2,x0,case){
 	if (y2$s<=0) {return (0);}
 	else if (y2$s>0 && y2$s<1) {s <- y2$s;}
 	else {s <- 1;}
-
-	return (integral_1(q,r,1,y1) - integral_1(t,s,1,y2));
-}
-
-error_prob_21 <- function(y1,y2,x0){
-		
+	
+	if (case == 1 || case == 3){
+		return (integral_1(q,r,1,y1) - integral_1(t,s,1,y2));
+	}
+	else{
+		A1 <- -integral_1(q,x0,x0,y1) + integral_1(t,x0,x0,y2);
+		A2 <- integral_1(x0,r,1,y1) - integral_1(x0,s,1,y2);
+		return (A1+A2); 
+	}
 }
 
 integral_1 <- function(lim1,lim2,lim3,fx){
 	return (0.5*fx$m*(lim2^2-lim1^2) + (fx$c-1)*lim2 - fx$c*lim1 + lim3);
 }
 
-train(100)
