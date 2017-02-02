@@ -5,7 +5,8 @@ dataset <- function(n,m,c){
 	line <- m*x1+c; 
 	rand <- rnorm(n+1,mean=0,sd=100);
 	x2 <- line + rand;
-	x2 <- abs(x2 / max(x2));
+	x2 <- abs(x2);
+	x2 <- x2 / max(x2);
 	i <- (1:length(x2));
 	plus <- i[x2[i] >= line[i]]; 
 	minus <- i[x2[i] < line[i]];
