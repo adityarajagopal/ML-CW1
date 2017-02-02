@@ -5,18 +5,20 @@ train <- function(n){
 	line <- perceptron(n,1,0.1); 
 	a <- line$coeff1; 
 	b <- line$coeff2;
-	isect <- get_intersections(a,b);
+	c <- 1; 
+	d <- 0.1;
+	isect <- get_intersections(a,b,c,d);
 	#return (c(isect,error_prob_1321(isect$y1,isect$y2,isect$x0,isect$case)));	
 	return(error_prob_1321(isect$y1,isect$y2,isect$x0,isect$case));
 }
 
-get_intersections <- function(a,b){
-	#for l1 = x + 0.1
-	l1 = list(x1=0.9,x0=-0.1); 
+get_intersections <- function(a,b,c,d){
+	#for l1 = cx + d = x + 0.1
+	l1 = list(x1=(1-d)/c,x0=-d/c); 
 	#for l2 = ax + b
 	l2 = list(x1=(1-b)/a,x0=-b/a);
 	#point of intersection 
-	x0 = (0.1-b)/(a-1); 
+	x0 = (d-b)/(a-c); 
 	y0 = x0+0.1; 
 
 	#case 1 (left half plane)
@@ -34,16 +36,16 @@ get_intersections <- function(a,b){
 
 	if (case == 1 || case == 3 || case == 21){
 		if (l1$x1 < l2$x1){
-			y1 = list(q=l1$x0,r=l1$x1,m=1,c=0.1);
+			y1 = list(q=l1$x0,r=l1$x1,m=c,c=d);
 			y2 = list(t=l2$x0,s=l2$x1,m=a,c=b); 
 		}
 		else if (l1$x1 > l2$x1){
 			y1 = list(q=l2$x0,r=l2$x1,m=a,c=b); 
-			y2 = list(t=l1$x0,s=l1$x1,m=1,c=0.1);
+			y2 = list(t=l1$x0,s=l1$x1,m=c,c=d);
 		}
 	}
 	else if(case == 22){
-		y1 = list(q=l1$x0,r=l1$x1,m=1,c=0.1); 
+		y1 = list(q=l1$x0,r=l1$x1,m=c,c=d); 
 		y2 = list(t=l2$x0,s=l2$x1,m=a,c=b); 
 	}
 
@@ -81,3 +83,4 @@ integral_1 <- function(lim1,lim2,lim3,fx){
 	return (0.5*fx$m*(lim2^2-lim1^2) + (fx$c-1)*lim2 - fx$c*lim1 + lim3);
 }
 
+train(100)
