@@ -62,9 +62,9 @@ perceptron <- function(datapoints,m,c){
 	a <- -(w[2]/w[3]);
 	b <- -(w[1]/w[3]);
 	x2 <- a*x1 + b; 
-	plot(x1,dset$feat2,col=dset$col);
-	lines(x1,x2,col='red');
-	lines(x1,dset$orig,col='blue');
+	#plot(x1,dset$feat2,col=dset$col);
+	#lines(x1,x2,col='red');
+	#lines(x1,dset$orig,col='blue');
 
 	return (list(coeff1=a,coeff2=b)); 
 }
