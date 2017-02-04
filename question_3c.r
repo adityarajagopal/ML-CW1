@@ -1,5 +1,4 @@
 #!/usr/bin/env/Rscript
-library(MASS)
 source('question_3a.r')
 
 initialise <- function(file){
