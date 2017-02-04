@@ -82,17 +82,10 @@ perceptron <- function(datapoints,m,c,gamma){
 	b <- -(learnt$w[1]/learnt$w[3]);
 	x2 <- a*x1 + b; 
 
-	#X <- c();
-	#temp <- t(learnt$w %*% p$feat);
-	#rho <- c();
-	#for(i in 1:ncol(p$feat)){
-	#	rho[i] <- p$class[i] * temp[i];
-	#	X[i] <- sum(p$feat[,i]^2);
-	#}
-	#Rho <- min(rho);
-	#R <- max(X);
-	#w_star <- sum(learnt$w^2); 
-	#t <- (R^2*w_star^2)/(Rho^2);
+	rho <- min(p$class * (learnt$w %*% p$feat));
+	R_sq <- max(diag(t(p$feat) %*% p$feat));
+	w_star <- sum(learnt$w^2); 
+	t <- (R_sq*w_star^2)/(rho^2);
 	
 	#plot(x1,dset$feat2,col=dset$col);
 	#lines(x1,x2);
@@ -100,5 +93,5 @@ perceptron <- function(datapoints,m,c,gamma){
 	#lines(x1,dset$upper,col='blue');
 	#lines(x1,dset$lower,col='red');
 
-	return (list(coeff1=a,coeff2=b,iter=learnt$iter)); 
+	return (list(coeff1=a,coeff2=b,iter=learnt$iter,t=t,rho=rho,w=learnt$w)); 
 }

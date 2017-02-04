@@ -10,7 +10,7 @@ train <- function(num_iter,inc,gamma){
 	T <- matrix(,nrow=length(sets),ncol=num_iter);
 	epsilon <- c();
 	Rho <- matrix(,nrow=length(sets),ncol=num_iter);
-	W <- matrix(,nrow=length(sets),ncol=num_iter);
+	W <- matrix(,nrow=(length(sets)*num_iter));
 
 	if (gamma == 0){
 		start <- proc.time();
@@ -20,9 +20,9 @@ train <- function(num_iter,inc,gamma){
 				iterations[i,j] <- line$iter;
 				error[i,j] <- get_error(line$coeff1,line$coeff2,c,d,gamma,'');
 				epsilon[i] <- sqrt(-(log(0.05)/(2*(i*inc)))); 
-				#T[i,j] <- line$t;
-				#Rho[i,j] <- line$rho; 
-				#W[i,j] <- line$w; 
+				T[i,j] <- line$t;
+				Rho[i,j] <- line$rho; 
+				#W[,i*j] <- line$w; 
 			}
 		}
 		elapsed <- proc.time() - start;
@@ -38,9 +38,9 @@ train <- function(num_iter,inc,gamma){
 				error1[i,j] <- get_error(line$coeff1,line$coeff2,c,d+gamma,gamma,'top');
 				error2[i,j] <- get_error(line$coeff1,line$coeff2,c,d-gamma,gamma,'bottom');
 				epsilon[i] <- sqrt(-(log(0.05)/(2*(i*inc)))); 
-				#T[i,j] <- line$t;
-				#Rho[i,j] <- line$rho; 
-				#W[i,j] <- line$w; 
+				T[i,j] <- line$t;
+				Rho[i,j] <- line$rho; 
+				#W[,i*j] <- line$w; 
 			}
 		}
 		elapsed <- proc.time() - start;
@@ -50,6 +50,12 @@ train <- function(num_iter,inc,gamma){
 	error <- t(apply(error,1,sort));
 	iterations <- t(rowMeans(iterations));
 	T <- t(rowMeans(T));
+	
+	#j <- 1:num_iter;
+	#index <- c();
+	#for (i in sets){
+	#	index[j] <- j[Rho[i,j] > 0]; 
+	#}
 	
 	#indices <- matrix(,nrow=nrow(Rho),ncol=2);
 	#k <- 1; 
@@ -214,4 +220,5 @@ integral_1 <- function(lim1,lim2,lim3,fx){
 	return (0.5*fx$m*(lim2^2-lim1^2) + (fx$c-1)*lim2 - fx$c*lim1 + lim3);
 }
 
-train(100,100,0.01)
+e <- train(100,100,0)
+print (e$t);
