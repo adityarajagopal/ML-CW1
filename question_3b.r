@@ -6,15 +6,23 @@ train <- function(num_iter,inc,gamma){
 	d <- 0.1;
 	sets <- seq(1,500/inc);
 	error <- matrix(,nrow=length(sets),ncol=num_iter);
+	iterations <- matrix(,nrow=length(sets),ncol=num_iter);
+	T <- matrix(,nrow=length(sets),ncol=num_iter);
 	epsilon <- c();
-	
+	Rho <- matrix(,nrow=length(sets),ncol=num_iter);
+	W <- matrix(,nrow=length(sets),ncol=num_iter);
+
 	if (gamma == 0){
 		start <- proc.time();
 		for (i in sets){
 			for (j in 1:num_iter){
 				line <- perceptron(i*inc,c,d,gamma); 
+				iterations[i,j] <- line$iter;
 				error[i,j] <- get_error(line$coeff1,line$coeff2,c,d,gamma,'');
 				epsilon[i] <- sqrt(-(log(0.05)/(2*(i*inc)))); 
+				#T[i,j] <- line$t;
+				#Rho[i,j] <- line$rho; 
+				#W[i,j] <- line$w; 
 			}
 		}
 		elapsed <- proc.time() - start;
@@ -26,9 +34,13 @@ train <- function(num_iter,inc,gamma){
 		for (i in sets){
 			for (j in 1:num_iter){
 				line <- perceptron(i*inc,c,d,gamma); 
+				iterations[i,j] <- line$iter;
 				error1[i,j] <- get_error(line$coeff1,line$coeff2,c,d+gamma,gamma,'top');
 				error2[i,j] <- get_error(line$coeff1,line$coeff2,c,d-gamma,gamma,'bottom');
 				epsilon[i] <- sqrt(-(log(0.05)/(2*(i*inc)))); 
+				#T[i,j] <- line$t;
+				#Rho[i,j] <- line$rho; 
+				#W[i,j] <- line$w; 
 			}
 		}
 		elapsed <- proc.time() - start;
@@ -36,13 +48,31 @@ train <- function(num_iter,inc,gamma){
 	}
 	
 	error <- t(apply(error,1,sort));
+	iterations <- t(rowMeans(iterations));
+	T <- t(rowMeans(T));
+	
+	#indices <- matrix(,nrow=nrow(Rho),ncol=2);
+	#k <- 1; 
+	#for (i in 1:nrow(Rho)){
+	#	for (j in 1:ncol(Rho)){
+	#		if (Rho[i,j] > 0){
+	#			k = k+1;
+	#			indices[i,k] <- j;
+	#		}
+	#		if (k == 2){
+	#			break;
+	#		}
+	#	}
+	#	k <- 1; 
+	#}
+	#print(indices);
+
 	five_percent <- error[,5]; 
 	nfive_percent <- error[,95]; 
 	avg <- t(rowMeans(error)); 
 	sample_size <- sets*inc; 
 	hoeff_5 <- avg - epsilon; 
 	hoeff_95 <- avg + epsilon; 
-
 	if(gamma == 0){
 		max_value <- max(hoeff_95)+0.01;
 		min_value <- min(hoeff_5)-0.01;	
@@ -63,7 +93,7 @@ train <- function(num_iter,inc,gamma){
 		lines(lowess(sample_size,hoeff_95),col='purple');	
 	}
 	
-	return (list(e=error,t=elapsed)); 
+	return (list(e=error,t=elapsed,i=iterations)); 
 }
 
 get_error <- function(a,b,c,d,gamma,line){
@@ -184,4 +214,4 @@ integral_1 <- function(lim1,lim2,lim3,fx){
 	return (0.5*fx$m*(lim2^2-lim1^2) + (fx$c-1)*lim2 - fx$c*lim1 + lim3);
 }
 
-train(100,100,0)
+train(100,100,0.01)

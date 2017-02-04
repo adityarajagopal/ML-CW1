@@ -52,6 +52,7 @@ learn <- function(ip,limit){
 	x = ip$feat;
 	w = ip$weights;
 	y = ip$class; 
+
 	num_errors <- 0;
 	iter <- 0;
 	repeat{
@@ -68,24 +69,36 @@ learn <- function(ip,limit){
 			w <- w + (y[point] * t(x[,point]));
 		}
 	}
-	return (w);
+	return (list(w=w,iter=iter));
 }
 
 perceptron <- function(datapoints,m,c,gamma){
 	dset <- dataset(datapoints,m,c,gamma);
 	p <- initialise(dset);
-	w <- learn(p,100000);
+	learnt <- learn(p,100000);
 	
 	x1 <- dset$feat1; 
-	a <- -(w[2]/w[3]);
-	b <- -(w[1]/w[3]);
+	a <- -(learnt$w[2]/learnt$w[3]);
+	b <- -(learnt$w[1]/learnt$w[3]);
 	x2 <- a*x1 + b; 
 
+	#X <- c();
+	#temp <- t(learnt$w %*% p$feat);
+	#rho <- c();
+	#for(i in 1:ncol(p$feat)){
+	#	rho[i] <- p$class[i] * temp[i];
+	#	X[i] <- sum(p$feat[,i]^2);
+	#}
+	#Rho <- min(rho);
+	#R <- max(X);
+	#w_star <- sum(learnt$w^2); 
+	#t <- (R^2*w_star^2)/(Rho^2);
+	
 	#plot(x1,dset$feat2,col=dset$col);
 	#lines(x1,x2);
 	#lines(x1,dset$orig,col='blue');
 	#lines(x1,dset$upper,col='blue');
 	#lines(x1,dset$lower,col='red');
 
-	return (list(coeff1=a,coeff2=b)); 
+	return (list(coeff1=a,coeff2=b,iter=learnt$iter)); 
 }
