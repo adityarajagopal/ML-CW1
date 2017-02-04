@@ -1,24 +1,40 @@
 #!/usr/env/bin/Rscript
 source("question_3a.r")
 
-train <- function(num_iter,inc){
+train <- function(num_iter,inc,gamma){
 	c <- 1; 
 	d <- 0.1;
 	sets <- seq(1,500/inc);
 	error <- matrix(,nrow=length(sets),ncol=num_iter);
 	epsilon <- c();
-
-	start <- proc.time();
-	for (i in sets){
-		for (j in 1:num_iter){
-			line <- perceptron(i*inc,c,d); 
-			error[i,j] <- get_error(line$coeff1,line$coeff2,c,d);
-			epsilon[i] <- sqrt(-(log(0.05)/(2*(i*inc)))); 
+	
+	if (gamma == 0){
+		start <- proc.time();
+		for (i in sets){
+			for (j in 1:num_iter){
+				line <- perceptron(i*inc,c,d,gamma); 
+				error[i,j] <- get_error(line$coeff1,line$coeff2,c,d,gamma,'');
+				epsilon[i] <- sqrt(-(log(0.05)/(2*(i*inc)))); 
+			}
 		}
+		elapsed <- proc.time() - start;
 	}
-	#results <- mapply(calculations,sets,1:num_iter,list(inc=inc,c=c,d=d,error=error,epsilon=epsilon));	
-	elapsed <- proc.time() - start;
-
+	else {
+		error1 <- matrix(,nrow=length(sets),ncol=num_iter);
+		error2 <- matrix(,nrow=length(sets),ncol=num_iter);
+		start <- proc.time();
+		for (i in sets){
+			for (j in 1:num_iter){
+				line <- perceptron(i*inc,c,d,gamma); 
+				error1[i,j] <- get_error(line$coeff1,line$coeff2,c,d+gamma,gamma,'top');
+				error2[i,j] <- get_error(line$coeff1,line$coeff2,c,d-gamma,gamma,'bottom');
+				epsilon[i] <- sqrt(-(log(0.05)/(2*(i*inc)))); 
+			}
+		}
+		elapsed <- proc.time() - start;
+		error <- error1 + error2; 
+	}
+	
 	error <- t(apply(error,1,sort));
 	five_percent <- error[,5]; 
 	nfive_percent <- error[,95]; 
@@ -26,9 +42,14 @@ train <- function(num_iter,inc){
 	sample_size <- sets*inc; 
 	hoeff_5 <- avg - epsilon; 
 	hoeff_95 <- avg + epsilon; 
-	
-	max_value <- max(hoeff_95)+0.01;
-	min_value <- min(hoeff_5)-0.01;
+
+	if(gamma == 0){
+		max_value <- max(hoeff_95)+0.01;
+		min_value <- min(hoeff_5)-0.01;	
+	}else{
+	   max_value <- max(nfive_percent)+0.01;
+	   min_value <- min(five_percent)-0.00001;
+	}
 	diff <- max_value - min_value; 
 	plot(sample_size,seq(min_value,max_value-0.00000002,diff/length(sample_size)),type='n',xlab='Sample Size',ylab='Error Probability');
 	lines(sample_size,avg,type='p'); 
@@ -37,25 +58,15 @@ train <- function(num_iter,inc){
 	lines(lowess(sample_size,five_percent),col='green');
 	lines(sample_size,nfive_percent,col='red',type='p');
 	lines(lowess(sample_size,nfive_percent),col='red');
-	lines(lowess(sample_size,hoeff_5),col='blue');
-	lines(lowess(sample_size,hoeff_95),col='purple');
+	if (gamma == 0){
+		lines(lowess(sample_size,hoeff_5),col='blue');
+		lines(lowess(sample_size,hoeff_95),col='purple');	
+	}
 	
 	return (list(e=error,t=elapsed)); 
 }
 
-calculations <- function(i,j,params){
-	inc <- 100; 
-	c <- 1;
-	d <- 0.1;
-	error <- params['error'];
-	epsilon <- params['epsilon']; 
-	line <- perceptron(i*inc,c,d); 
-	error[i,j] <- get_error(line$coeff1,line$coeff2,c,d);
-	epsilon[i] <- sqrt(-(log(0.05)/(2*(i*inc)))); 
-	return (list(error=error,eps=epsilon));
-}
-
-get_error <- function(a,b,c,d){
+get_error <- function(a,b,c,d,gamma,line){
 	#for l1 = cx + d = x + 0.1
 	l1 = list(x1=(1-d)/c,x0=-d/c); 
 	#for l2 = ax + b
@@ -81,21 +92,24 @@ get_error <- function(a,b,c,d){
 		if (l1$x1 < l2$x1){
 			y1 = list(q=l1$x0,r=l1$x1,m=c,c=d);
 			y2 = list(t=l2$x0,s=l2$x1,m=a,c=b); 
+			boundary <- 'y1'; 
 		}
 		else if (l1$x1 > l2$x1){
 			y1 = list(q=l2$x0,r=l2$x1,m=a,c=b); 
 			y2 = list(t=l1$x0,s=l1$x1,m=c,c=d);
+			boundary <- 'y2';
 		}
 	}
 	else if(case == 22){
 		y1 = list(q=l1$x0,r=l1$x1,m=c,c=d); 
 		y2 = list(t=l2$x0,s=l2$x1,m=a,c=b); 
+		boundary <- 'y1';
 	}
-
-	return (error_prob(y1,y2,x0,case)); 
+	
+	return(error_prob(y1,y2,x0,case,gamma,line,boundary)); 
 }
 
-error_prob <- function(y1,y2,x0,case){
+error_prob <- function(y1,y2,x0,case,gamma,line,boundary){
 	if (y1$q <= 0) {q <- 0;}
 	else if (y1$q>0 && y1$q<1) {q <- y1$q;}
 	else {return (0);}
@@ -116,23 +130,53 @@ error_prob <- function(y1,y2,x0,case){
 	else {s <- 1;}
 	
 	if (case == 1 || case == 3){
-		return (integral_1(q,r,1,y1) - integral_1(t,s,1,y2));
+		if (gamma == 0){
+			return (integral_1(q,r,1,y1) - integral_1(t,s,1,y2));
+		}
+		else {
+			return (0);
+		}
 	}
 	else if(case == 21){
 		A1 <- -integral_1(q,x0,x0,y1) + integral_1(t,x0,x0,y2);
 		A2 <- integral_1(x0,r,1,y1) - integral_1(x0,s,1,y2);
-		return (A1+A2); 
+		if (gamma == 0){
+			return (A1+A2); 
+		}
+		else{
+			if (line == 'top'){
+				if (boundary == 'y2'){
+					return(A2); 
+				}
+				else{
+					return(A1);
+				}
+			}
+			else{
+				if (boundary == 'y2'){
+					return(A1);
+				}
+				else{
+					return(A2);
+				}
+			}
+		}
 	}
 	else{
-		A1 <- integral_1(q,x0,x0,y1) + integral_1(x0,t,t,y2); 
-		y1_1 <- y1; 
-		y1_1$m = -y1$m; 
-		y1_1$c = y1$m + y1$c; 
-		y2_1 <- y2; 
-		y2_1$m = -y2$m; 
-		y2_1$c = y2$m + y2$c; 
-		A2 <- -(integral_1(1-r,1-x0,1-x0,y2_1) + integral_1(1-x0,1-s,1-s,y1_1)); 
-		return (1-A1-A2); 
+		if (gamma == 0){
+			A1 <- integral_1(q,x0,x0,y1) + integral_1(x0,t,t,y2); 
+			y1_1 <- y1; 
+			y1_1$m = -y1$m; 
+			y1_1$c = y1$m + y1$c; 
+			y2_1 <- y2; 
+			y2_1$m = -y2$m; 
+			y2_1$c = y2$m + y2$c; 
+			A2 <- -(integral_1(1-r,1-x0,1-x0,y2_1) + integral_1(1-x0,1-s,1-s,y1_1)); 
+			return (1-A1-A2); 
+		}
+		else{
+			return (0);
+		}
 	}
 }
 
@@ -140,4 +184,4 @@ integral_1 <- function(lim1,lim2,lim3,fx){
 	return (0.5*fx$m*(lim2^2-lim1^2) + (fx$c-1)*lim2 - fx$c*lim1 + lim3);
 }
 
-train(100,100)
+train(100,100,0)
