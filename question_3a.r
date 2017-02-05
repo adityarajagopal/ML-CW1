@@ -55,12 +55,16 @@ learn <- function(ip,limit){
 
 	num_errors <- 0;
 	iter <- 0;
+	W <- matrix(,ncol=ncol(w)); 
+	error <- c(); 
+	total_points <- length(y);
 	repeat{
 		iter = iter + 1;
 		h = sign(w %*% x); 
 		points = (1:length(y));
 		points_in_error <- points[h[points] != y[points]];
 		num_errors <- length(points_in_error);
+		
 		if (num_errors == 0 || iter == limit){
 			break;
 		}
@@ -69,7 +73,7 @@ learn <- function(ip,limit){
 			w <- w + (y[point] * t(x[,point]));
 		}
 	}
-	return (list(w=w,iter=iter));
+	return (list(w=w,iter=iter,w_log=W,error_log=error,err=num_errors/total_points));
 }
 
 perceptron <- function(datapoints,m,c,gamma){
@@ -81,7 +85,7 @@ perceptron <- function(datapoints,m,c,gamma){
 	a <- -(learnt$w[2]/learnt$w[3]);
 	b <- -(learnt$w[1]/learnt$w[3]);
 	x2 <- a*x1 + b; 
-
+	
 	rho <- min(p$class * (learnt$w %*% p$feat));
 	R_sq <- max(diag(t(p$feat) %*% p$feat));
 	w_star <- sum(learnt$w^2); 

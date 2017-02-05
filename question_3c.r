@@ -1,5 +1,4 @@
 #!/usr/bin/env/Rscript
-source('question_3a.r')
 
 initialise <- function(file){
 	raw_train <- read.table(file);
@@ -22,6 +21,38 @@ initialise <- function(file){
 	return(list(class=y,feat=x,weights=w));
 }
 
+learn <- function(ip,limit){
+	x = ip$feat;
+	w = ip$weights;
+	y = ip$class; 
+
+	num_errors <- 0;
+	iter <- 0;
+	W <- matrix(,ncol=ncol(w)); 
+	error <- c(); 
+	total_points <- length(y);
+	repeat{
+		iter = iter + 1;
+		h = sign(w %*% x); 
+		points = (1:length(y));
+		points_in_error <- points[h[points] != y[points]];
+		num_errors <- length(points_in_error);
+		
+		W <- rbind(W,w);
+		error <- c(error,num_errors/total_points);
+
+		if (num_errors == 0 || iter == limit){
+			break;
+		}
+		else{
+			point = points_in_error[1];
+			w <- w + (y[point] * t(x[,point]));
+		}
+	}
+	W <- W[-1,];
+	return (list(w=w,iter=iter,w_log=W,error_log=error,err=num_errors/total_points));
+}
+
 learn_1 <- function(ip,limit){
 	x <- ip$feat;
 	w <- ip$weights;
@@ -32,30 +63,61 @@ learn_1 <- function(ip,limit){
 	num_errors <- 0;
 	iter <- 0;
 	total_points <- length(y);
+	min_error <- total_points + 1; 
+	w_min <- w; 
 	repeat{
 		iter = iter + 1;
 		h = sign(w %*% x); 
 		points = (1:length(y));
 		points_in_error <- points[h[points] != y[points]];
 		num_errors <- length(points_in_error);
-		W <- rbind(W,w);	
-		error <- c(error,num_errors/total_points);
+		
+		#modified perceptron updates W and error selectively
+		if (num_errors <= min_error){
+			min_error <- num_errors;
+			w_min <- w; 
+		}
+		W <- rbind(W,w_min);
+		error <- c(error,min_error/total_points);
+		
+		#check for break otherwise update w
 		if (num_errors == 0 || iter == limit){
 			break;
 		}
 		else{
-			point = points_in_error[1];
+			i <- runif(1,1,length(points_in_error));
+			point = points_in_error[i];
 			w <- w + (y[point] * t(x[,point]));
 		}
 	}
-	w_old <- w; 
+	#return the required values
 	W <- W[-1,];
 	index <- which.min(error); 
 	w <- W[index,];
-	return (list(w=w,w_old=w_old,iter=iter,w_log=W,error_log=error));
+	err <- error[index];
+	
+	return (list(w=w,iter=iter,w_log=W,error_log=error,error=err));
 }
 
 test_hypothesis <- function(w,x,y,w_log){
+	points = (1:length(y));
+	h_test = sign(w %*% x); 
+	points_in_error <- points[h_test[points] != y[points]];
+
+	H <- sign(w_log %*% x);
+	P <- c();
+	min_error <- 1; 
+	for (i in 1:nrow(w_log)){
+		error <- length(points[H[i,points] != y[points]])/length(y);
+		if (error <= min_error){
+			min_error <- error; 
+		}
+		P[i] <- min_error;
+	}
+
+	return(list(e_percent=length(points_in_error)/length(y),e_log=P));
+}
+test_hypothesis_old <- function(w,x,y,w_log){
 	points = (1:length(y));
 	h_test = sign(w %*% x); 
 	points_in_error <- points[h_test[points] != y[points]];
@@ -81,28 +143,57 @@ main <- function(){
 	train_raw <- initialise('data/zip.train');
 	test_raw <- initialise('data/zip.test');
 	learn_raw <- learn_1(train_raw,1000);
-	test_error_raw <- test_hypothesis(learn_raw$w,test_raw$feat,test_raw$class,learn_raw$w_log);
+	learn_raw_old <- learn(train_raw,1000);
+	test_error_raw <- test_hypothesis_old(learn_raw$w,test_raw$feat,test_raw$class,learn_raw$w_log);
+	test_error_raw_old <- test_hypothesis_old(learn_raw_old$w,test_raw$feat,test_raw$class,learn_raw_old$w_log);
 
 	train_feat <- initialise('data/features.train');
 	test_feat <- initialise('data/features.test');
 	learn_feat <- learn_1(train_feat,1000);
-	test_error_feat <- test_hypothesis(learn_feat$w,test_feat$feat,test_raw$class,learn_feat$w_log);
-
+	learn_feat_old <- learn(train_feat,1000);
+	test_error_feat <- test_hypothesis_old(learn_feat$w,test_feat$feat,test_raw$class,learn_feat$w_log);
+	test_error_feat_old <- test_hypothesis_old(learn_feat_old$w,test_feat$feat,test_feat$class,learn_feat_old$w_log);
+	
+	#initialise weights for features using linear regression
 	train_feat$weights <- linreg(train_feat$feat,train_feat$class); 
 	learn_feat_w <- learn_1(train_feat,1000);
-	test_error_feat_w <- test_hypothesis(learn_feat_w$w,test_feat$feat,test_raw$class,learn_feat_w$w_log);
+	learn_feat_w_old <- learn(train_feat,1000);
+	print (learn_feat_w$w_log[1,]);
+	test_error_feat_w <- test_hypothesis_old(learn_feat_w$w,test_feat$feat,test_feat$class,learn_feat_w$w_log);
+	test_error_feat_w_old <- test_hypothesis_old(learn_feat_w_old$w,test_feat$feat,test_feat$class,learn_feat_w_old$w_log);
+
+	#compare test and training error for both cases
+	print ('Raw training error :'); print(learn_raw$error);
+	print ('Raw test error :'); print(test_error_raw$e_percent);
+	print ('Feat training error :'); print(learn_feat$error); 
+	print ('Feat test error :'); print(test_error_feat$e_percent);
+	print ('Feat training error (w) :'); print(learn_feat_w$error);
+	print ('Feat test error (w) :'); print(test_error_feat_w$e_percent);
 	
+	#plot raw training and test error vs iterations for modified perceptron
 	plot(1:length(learn_raw$error_log),learn_raw$error_log,type='n');
 	lines(1:length(learn_raw$error_log),learn_raw$error_log,col='red');
 	lines(1:length(learn_raw$error_log),test_error_raw$e_log,col='blue');
-
+	#plot raw training and test error vs iterations for original perceptron
+	plot(1:length(learn_raw_old$error_log),learn_raw_old$error_log,type='n');
+	lines(1:length(learn_raw_old$error_log),learn_raw_old$error_log,col='red');
+	lines(1:length(learn_raw_old$error_log),test_error_raw_old$e_log,col='blue');
+	#plot feat training and test error vs iterations for modified perceptron
 	plot(1:length(learn_feat$error_log),learn_feat$error_log,type='n');
 	lines(1:length(learn_feat$error_log),learn_feat$error_log,col='red');
 	lines(1:length(learn_feat$error_log),test_error_feat$e_log,col='blue');
-	
-	plot(1:length(learn_feat_w$error_log),learn_feat_w$error_log,type='n');
-	lines(1:length(learn_feat_w$error_log),learn_feat_w$error_log,col='red');
-	lines(1:length(learn_feat_w$error_log),test_error_feat_w$e_log,col='blue');
+	#plot feat training and test error vs iterations for original perceptron
+	plot(1:length(learn_feat_old$error_log),learn_feat_old$error_log,type='n');
+	lines(1:length(learn_feat_old$error_log),learn_feat_old$error_log,col='red');
+	lines(1:length(learn_feat_old$error_log),test_error_feat_old$e_log,col='blue');
+	#plot feat training and test error vs iterations for linreg initialised modified perceptron	
+	#plot(1:length(learn_feat_w$error_log),learn_feat_w$error_log,type='n');
+	plot(1:length(learn_feat_w$error_log),test_error_feat_w$e_log,col='blue',type='l');
+	lines(1:length(learn_feat_w$error_log),learn_feat_w$error_log,col='red',type='l');
+	#plot feat training and test error vs iterations for linreg initialised original perceptron	
+	plot(1:length(learn_feat_w_old$error_log),learn_feat_w_old$error_log,type='n');
+	lines(1:length(learn_feat_w_old$error_log),learn_feat_w_old$error_log,col='red');
+	lines(1:length(learn_feat_w_old$error_log),test_error_feat_w_old$e_log,col='blue');
 }
 
 main()

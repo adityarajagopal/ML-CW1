@@ -20,8 +20,8 @@ train <- function(num_iter,inc,gamma){
 				iterations[i,j] <- line$iter;
 				error[i,j] <- get_error(line$coeff1,line$coeff2,c,d,gamma,'');
 				epsilon[i] <- sqrt(-(log(0.05)/(2*(i*inc)))); 
-				T[i,j] <- line$t;
-				Rho[i,j] <- line$rho; 
+				#T[i,j] <- line$t;
+				#Rho[i,j] <- line$rho; 
 				#W[,i*j] <- line$w; 
 			}
 		}
