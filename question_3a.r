@@ -1,4 +1,7 @@
 #!/usr/bin/env/Rscript
+
+#function used to generate the dataset
+#n is the number of poitns, m and c are the slope and y-intercept of the line to seperate on, gamma is the seperation of the line
 dataset <- function(n,m,c,gamma){
 	graph <- matrix(,nrow=3,ncol=n);
 	num_left <- 0; 
@@ -63,7 +66,7 @@ learn <- function(ip,limit){
 		points_in_error <- points[h[points] != y[points]];
 		num_errors <- length(points_in_error);
 		
-		if (num_errors == 0 || iter == limit){
+		if ((num_errors == 0) || (iter == limit)){
 			break;
 		}
 		else{
@@ -89,11 +92,8 @@ perceptron <- function(datapoints,m,c,gamma){
 	w_star <- sum(learnt$w^2); 
 	t <- (R_sq*w_star^2)/(rho^2);
 	
-	#plot(x1,dset$feat2,col=dset$col);
-	#lines(x1,x2);
-	#lines(x1,dset$orig,col='blue');
-	#lines(x1,dset$upper,col='blue');
-	#lines(x1,dset$lower,col='red');
 
-	return (list(coeff1=a,coeff2=b,iter=learnt$iter,t=t,rho=rho,w=learnt$w)); 
+	return (list(coeff1=a,coeff2=b,iter=learnt$iter,t=t,rho=rho,w=learnt$w,dset=dset,line=x2)); 
 }
+
+

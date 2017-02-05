@@ -46,7 +46,7 @@ train <- function(num_iter,inc,gamma){
 		elapsed <- proc.time() - start;
 		error <- error1 + error2; 
 	}
-	print (elapsed);	
+
 	w_ <- matrix(,nrow=1,ncol=3);
 	j <- 1:num_iter;
 	for(i in sets){
@@ -58,10 +58,11 @@ train <- function(num_iter,inc,gamma){
 	error <- t(apply(error,1,sort));
 	iterations <- t(rowMeans(iterations));
 	T <- t(rowMeans(T));
-	
+
 	five_percent <- error[,5]; 
 	nfive_percent <- error[,95]; 
 	avg <- t(rowMeans(error)); 
+	print (avg);
 	sample_size <- sets*inc; 
 	hoeff_5 <- avg - epsilon; 
 	hoeff_95 <- avg + epsilon; 
@@ -72,6 +73,7 @@ train <- function(num_iter,inc,gamma){
 	   max_value <- max(nfive_percent)+0.01;
 	   min_value <- min(five_percent)-0.00001;
 	}
+	
 	diff <- max_value - min_value; 
 	plot(sample_size,seq(min_value,max_value-0.00000002,diff/length(sample_size)),type='n',xlab='Sample Size',ylab='Error Probability');
 	lines(sample_size,avg,type='p'); 
@@ -94,11 +96,10 @@ get_error <- function(a,b,c,d,gamma,line){
 	#for l2 = ax + b
 	l2 = list(x1=(1-b)/a,x0=-b/a);
 	#point of intersection 
-	x0 = (d-b)/(a-c); 
-	y0 = x0+0.1; 
-
+	x0 <- (d-b)/(a-c); 
+	y0 <- c*x0+d; 
 	#case 1 (left half plane)
-	if (x0 <= 0) {case <- 1;} 
+	if (x0<=0 || y0<=0) {case <- 1;} 
 	#case3 (1st quad and outside the box)
 	else if (x0>0 && y0>=0 && (x0>=1 || y0>=1)) {case <- 3;} 
 	#case2 (within the box)
@@ -110,7 +111,7 @@ get_error <- function(a,b,c,d,gamma,line){
 		else {case <- 22;}
 	}
 
-	if (case == 1 || case == 3 || case == 21){
+	if (case == 1 || case == 21){
 		if (l1$x1 < l2$x1){
 			y1 = list(q=l1$x0,r=l1$x1,m=c,c=d);
 			y2 = list(t=l2$x0,s=l2$x1,m=a,c=b); 
@@ -126,6 +127,18 @@ get_error <- function(a,b,c,d,gamma,line){
 		y1 = list(q=l1$x0,r=l1$x1,m=c,c=d); 
 		y2 = list(t=l2$x0,s=l2$x1,m=a,c=b); 
 		boundary <- 'y1';
+	}
+	else{
+		if (l1$x0 < l2$x0){
+			y1 = list(q=l1$x0,r=l1$x1,m=c,c=d); 
+			y2 = list(t=l2$x0,s=l2$x1,m=a,c=b); 
+			boundary <- 'y1';
+		}	
+		else if(l1$x0 > l2$x0){
+			y1 = list(q=l2$x0,r=l2$x1,m=a,c=b); 
+			y2 = list(t=l1$x0,s=l1$x1,m=c,c=d);
+			boundary <- 'y2';
+		}
 	}
 	
 	return(error_prob(y1,y2,x0,case,gamma,line,boundary)); 
@@ -152,11 +165,40 @@ error_prob <- function(y1,y2,x0,case,gamma,line,boundary){
 	else {s <- 1;}
 	
 	if (case == 1 || case == 3){
+		A <- integral_1(q,r,1,y1) - integral_1(t,s,1,y2);
 		if (gamma == 0){
-			return (integral_1(q,r,1,y1) - integral_1(t,s,1,y2));
+			return (A);
 		}
 		else {
-			return (0);
+			if (line == 'top'){
+				if (case == 1){
+					if (boundary == 'y2'){
+						return (A);
+					}
+					else {return (0);}
+				}
+				else{
+					if (boundary == 'y2'){
+						return (A);
+					}
+					else {return (0);}
+				}
+			}
+			else{
+				if (case == 1){
+					if (boundary == 'y1'){
+						return (A);
+					}
+					else {return (0);}
+						
+				}
+				else{
+					if (boundary == 'y1'){
+						return (A);
+					}
+					else {return (0);}
+				}
+			}
 		}
 	}
 	else if(case == 21){
@@ -206,5 +248,5 @@ integral_1 <- function(lim1,lim2,lim3,fx){
 	return (0.5*fx$m*(lim2^2-lim1^2) + (fx$c-1)*lim2 - fx$c*lim1 + lim3);
 }
 
-e <- train(100,500,0)
+e <- train(100,100,0)
 print (e$t);
