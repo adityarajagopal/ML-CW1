@@ -55,8 +55,6 @@ learn <- function(ip,limit){
 
 	num_errors <- 0;
 	iter <- 0;
-	W <- matrix(,ncol=ncol(w)); 
-	error <- c(); 
 	total_points <- length(y);
 	repeat{
 		iter = iter + 1;
@@ -73,7 +71,7 @@ learn <- function(ip,limit){
 			w <- w + (y[point] * t(x[,point]));
 		}
 	}
-	return (list(w=w,iter=iter,w_log=W,error_log=error,err=num_errors/total_points));
+	return (list(w=w,iter=iter,err=num_errors/total_points));
 }
 
 perceptron <- function(datapoints,m,c,gamma){

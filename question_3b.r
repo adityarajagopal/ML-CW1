@@ -46,7 +46,7 @@ train <- function(num_iter,inc,gamma){
 		elapsed <- proc.time() - start;
 		error <- error1 + error2; 
 	}
-	
+	print (elapsed);	
 	w_ <- matrix(,nrow=1,ncol=3);
 	j <- 1:num_iter;
 	for(i in sets){
@@ -59,28 +59,6 @@ train <- function(num_iter,inc,gamma){
 	iterations <- t(rowMeans(iterations));
 	T <- t(rowMeans(T));
 	
-	#j <- 1:num_iter;
-	#index <- c();
-	#for (i in sets){
-	#	index[j] <- j[Rho[i,j] > 0]; 
-	#}
-	
-	#indices <- matrix(,nrow=nrow(Rho),ncol=2);
-	#k <- 1; 
-	#for (i in 1:nrow(Rho)){
-	#	for (j in 1:ncol(Rho)){
-	#		if (Rho[i,j] > 0){
-	#			k = k+1;
-	#			indices[i,k] <- j;
-	#		}
-	#		if (k == 2){
-	#			break;
-	#		}
-	#	}
-	#	k <- 1; 
-	#}
-	#print(indices);
-
 	five_percent <- error[,5]; 
 	nfive_percent <- error[,95]; 
 	avg <- t(rowMeans(error)); 
@@ -228,5 +206,5 @@ integral_1 <- function(lim1,lim2,lim3,fx){
 	return (0.5*fx$m*(lim2^2-lim1^2) + (fx$c-1)*lim2 - fx$c*lim1 + lim3);
 }
 
-e <- train(100,100,0)
+e <- train(100,500,0)
 print (e$t);
