@@ -67,7 +67,7 @@ train <- function(num_iter,inc,gamma){
 	hoeff_5 <- avg - epsilon; 
 	hoeff_95 <- avg + epsilon; 
 	if(gamma == 0){
-		max_value <- max(hoeff_95)+0.01;
+		max_value <- max(hoeff_95)+0.1;
 		min_value <- min(hoeff_5)-0.01;	
 	}else{
 	   max_value <- max(nfive_percent)+0.01;
