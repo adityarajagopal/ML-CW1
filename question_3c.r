@@ -1,6 +1,6 @@
 #!/usr/bin/env/Rscript
 
-initialise <- function(file){
+initialise1 <- function(file){
 	raw_train <- read.table(file);
 	i <- 1:nrow(raw_train); 
 	index_2 <- i[raw_train[i,1] == 2]; 
@@ -21,7 +21,7 @@ initialise <- function(file){
 	return(list(class=y,feat=x,weights=w));
 }
 
-learn <- function(ip,limit){
+learn1 <- function(ip,limit){
 	x = ip$feat;
 	w = ip$weights;
 	y = ip$class; 
@@ -53,7 +53,7 @@ learn <- function(ip,limit){
 	return (list(w=w,iter=iter,w_log=W,error_log=error,err=num_errors/total_points));
 }
 
-learn_1 <- function(ip,limit){
+learn2 <- function(ip,limit){
 	x <- ip$feat;
 	w <- ip$weights;
 	y <- ip$class; 
@@ -139,30 +139,30 @@ linreg <- function(X,y){
 	return(t(w));
 }
 
-main <- function(){
-	train_raw <- initialise('data/zip.train');
-	test_raw <- initialise('data/zip.test');
-	learn_raw <- learn_1(train_raw,1000);
-	learn_raw_old <- learn(train_raw,1000);
+q3c_main <- function(){
+	train_raw <- initialise1('data/zip.train');
+	test_raw <- initialise1('data/zip.test');
+	learn_raw <- learn2(train_raw,1000);
+	learn_raw_old <- learn1(train_raw,1000);
 	test_error_raw <- test_hypothesis_old(learn_raw$w,test_raw$feat,test_raw$class,learn_raw$w_log);
 	test_error_raw_old <- test_hypothesis_old(learn_raw_old$w,test_raw$feat,test_raw$class,learn_raw_old$w_log);
 
-	train_feat <- initialise('data/features.train');
-	test_feat <- initialise('data/features.test');
-	learn_feat <- learn_1(train_feat,1000);
-	learn_feat_old <- learn(train_feat,1000);
+	train_feat <- initialise1('data/features.train');
+	test_feat <- initialise1('data/features.test');
+	learn_feat <- learn2(train_feat,1000);
+	learn_feat_old <- learn1(train_feat,1000);
 	test_error_feat <- test_hypothesis_old(learn_feat$w,test_feat$feat,test_raw$class,learn_feat$w_log);
 	test_error_feat_old <- test_hypothesis_old(learn_feat_old$w,test_feat$feat,test_feat$class,learn_feat_old$w_log);
 	
 	#initialise weights for features using linear regression
 	train_feat$weights <- linreg(train_feat$feat,train_feat$class); 
-	learn_feat_w <- learn_1(train_feat,1000);
-	learn_feat_w_old <- learn(train_feat,1000);
-	print (learn_feat_w$w_log[1,]);
+	learn_feat_w <- learn2(train_feat,1000);
+	learn_feat_w_old <- learn1(train_feat,1000);
 	test_error_feat_w <- test_hypothesis_old(learn_feat_w$w,test_feat$feat,test_feat$class,learn_feat_w$w_log);
 	test_error_feat_w_old <- test_hypothesis_old(learn_feat_w_old$w,test_feat$feat,test_feat$class,learn_feat_w_old$w_log);
 
 	#compare test and training error for both cases
+	sink('q3c_graphs/q3c.txt');
 	print ('Raw training error :'); print(learn_raw$error);
 	print ('Raw test error :'); print(test_error_raw$e_percent);
 	print ('Feat training error :'); print(learn_feat$error); 
@@ -170,30 +170,39 @@ main <- function(){
 	print ('Feat training error (w) :'); print(learn_feat_w$error);
 	print ('Feat test error (w) :'); print(test_error_feat_w$e_percent);
 	
+	
+	pdf('q3c_graphs/q3c_21.pdf');
 	#plot raw training and test error vs iterations for modified perceptron
-	plot(1:length(learn_raw$error_log),learn_raw$error_log,type='n');
+	plot(1:length(learn_raw$error_log),learn_raw$error_log,type='n',main='Raw Data Training and Test Error (Modified Perceptron)',xlab='Number of Updates',ylab='Error Probability');
 	lines(1:length(learn_raw$error_log),learn_raw$error_log,col='red');
 	lines(1:length(learn_raw$error_log),test_error_raw$e_log,col='blue');
+	
+	pdf('q3c_graphs/q3c_22.pdf');
 	#plot raw training and test error vs iterations for original perceptron
-	plot(1:length(learn_raw_old$error_log),learn_raw_old$error_log,type='n');
+	plot(1:length(learn_raw_old$error_log),learn_raw_old$error_log,type='n',main='Raw Data Training and Test Error (Original Perceptron)',xlab='Number of Updates',ylab='Error Probability');
 	lines(1:length(learn_raw_old$error_log),learn_raw_old$error_log,col='red');
 	lines(1:length(learn_raw_old$error_log),test_error_raw_old$e_log,col='blue');
+	
+	pdf('q3c_graphs/q3c_23.pdf');
 	#plot feat training and test error vs iterations for modified perceptron
-	plot(1:length(learn_feat$error_log),learn_feat$error_log,type='n');
+	plot(1:length(learn_feat$error_log),learn_feat$error_log,type='n',main='Feature Data Training and Test Error (Modified Perceptron)',xlab='Number of Updates',ylab='Error Probability');
 	lines(1:length(learn_feat$error_log),learn_feat$error_log,col='red');
 	lines(1:length(learn_feat$error_log),test_error_feat$e_log,col='blue');
+	
+	pdf('q3c_graphs/q3c_24.pdf');
 	#plot feat training and test error vs iterations for original perceptron
-	plot(1:length(learn_feat_old$error_log),learn_feat_old$error_log,type='n');
+	plot(1:length(learn_feat_old$error_log),learn_feat_old$error_log,type='n',main='Feature Data Training and Test Error (Original Perceptron)',xlab='Number of Updates',ylab='Error Probability');
 	lines(1:length(learn_feat_old$error_log),learn_feat_old$error_log,col='red');
 	lines(1:length(learn_feat_old$error_log),test_error_feat_old$e_log,col='blue');
+	
+	pdf('q3c_graphs/q3c_31.pdf');
 	#plot feat training and test error vs iterations for linreg initialised modified perceptron	
 	#plot(1:length(learn_feat_w$error_log),learn_feat_w$error_log,type='n');
-	plot(1:length(learn_feat_w$error_log),test_error_feat_w$e_log,col='blue',type='l');
+	plot(1:length(learn_feat_w$error_log),test_error_feat_w$e_log,col='blue',type='l',main='Feature Data Training and Test Error \n (Modified Perceptron initialised with linear regression)',xlab='Number of Updates',ylab='Error Probability');
 	lines(1:length(learn_feat_w$error_log),learn_feat_w$error_log,col='red',type='l');
+	pdf('q3c_graphs/q3c_32.pdf');
 	#plot feat training and test error vs iterations for linreg initialised original perceptron	
-	plot(1:length(learn_feat_w_old$error_log),learn_feat_w_old$error_log,type='n');
+	plot(1:length(learn_feat_w_old$error_log),learn_feat_w_old$error_log,type='n',main='Feature Data Training and Test Error \n (Original Perceptron initialised with linear regression)',xlab='Number of Updates',ylab='Error Probability');
 	lines(1:length(learn_feat_w_old$error_log),learn_feat_w_old$error_log,col='red');
 	lines(1:length(learn_feat_w_old$error_log),test_error_feat_w_old$e_log,col='blue');
 }
-
-main()
