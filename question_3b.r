@@ -55,39 +55,38 @@ train <- function(num_iter,inc,gamma){
 	}
 	w_ <- w_[-1,]; 
 
-	error <- t(apply(error,1,sort));
+	error_sorted <- t(apply(error,1,sort));
 	iterations <- t(rowMeans(iterations));
 	T <- t(rowMeans(T));
-
-	five_percent <- error[,5]; 
-	nfive_percent <- error[,95]; 
-	avg <- t(rowMeans(error)); 
-	print (avg);
 	sample_size <- sets*inc; 
-	hoeff_5 <- avg - epsilon; 
-	hoeff_95 <- avg + epsilon; 
-	if(gamma == 0){
-		max_value <- max(hoeff_95)+0.1;
-		min_value <- min(hoeff_5)-0.01;	
-	}else{
-	   max_value <- max(nfive_percent)+0.01;
-	   min_value <- min(five_percent)-0.00001;
-	}
 	
-	diff <- max_value - min_value; 
-	plot(sample_size,seq(min_value,max_value-0.00000002,diff/length(sample_size)),type='n',xlab='Sample Size',ylab='Error Probability');
-	lines(sample_size,avg,type='p'); 
-	lines(lowess(sample_size,avg));
-	lines(sample_size,five_percent,col='green',type='p');
-	lines(lowess(sample_size,five_percent),col='green');
-	lines(sample_size,nfive_percent,col='red',type='p');
-	lines(lowess(sample_size,nfive_percent),col='red');
-	if (gamma == 0){
-		lines(lowess(sample_size,hoeff_5),col='blue');
-		lines(lowess(sample_size,hoeff_95),col='purple');	
-	}
+	#five_percent <- error[,5]; 
+	#nfive_percent <- error[,95]; 
+	#avg <- t(rowMeans(error)); 
+	#hoeff_5 <- avg - epsilon; 
+	#hoeff_95 <- avg + epsilon; 
+	#if(gamma == 0){
+	#	max_value <- max(hoeff_95)+0.1;
+	#	min_value <- min(hoeff_5)-0.01;	
+	#}else{
+	#   max_value <- max(nfive_percent)+0.01;
+	#   min_value <- min(five_percent)-0.00001;
+	#}
+	#
+	#diff <- max_value - min_value; 
+	#plot(sample_size,seq(min_value,max_value-0.00000002,diff/length(sample_size)),type='n',xlab='Sample Size',ylab='Error Probability');
+	#lines(sample_size,avg,type='p'); 
+	#lines(lowess(sample_size,avg));
+	#lines(sample_size,five_percent,col='green',type='p');
+	#lines(lowess(sample_size,five_percent),col='green');
+	#lines(sample_size,nfive_percent,col='red',type='p');
+	#lines(lowess(sample_size,nfive_percent),col='red');
+	#if (gamma == 0){
+	#	lines(lowess(sample_size,hoeff_5),col='blue');
+	#	lines(lowess(sample_size,hoeff_95),col='purple');	
+	#}
 	
-	return (list(e=error,t=elapsed,i=iterations)); 
+	return (list(e=error,t=elapsed,i=iterations,sample_size=sample_size,e_s=error_sorted,epsilon=epsilon,T=T,w_star=w_)); 
 }
 
 get_error <- function(a,b,c,d,gamma,line){
@@ -247,6 +246,3 @@ error_prob <- function(y1,y2,x0,case,gamma,line,boundary){
 integral_1 <- function(lim1,lim2,lim3,fx){
 	return (0.5*fx$m*(lim2^2-lim1^2) + (fx$c-1)*lim2 - fx$c*lim1 + lim3);
 }
-
-e <- train(100,100,0)
-print (e$t);

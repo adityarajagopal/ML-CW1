@@ -40,6 +40,10 @@ dataset <- function(n,m,c,gamma){
 	return (list(feat1=graph[1,],feat2=graph[2,],class=graph[3,],orig=line,upper=m*graph[1,]+c+gamma,lower=m*graph[1,]+c-gamma,col=colour));
 }
 
+#function used to initialise the perceptron by setting up :
+#(i) feature matrix x 
+#(ii) classified matrix y
+#(iii) weights matrix of just 1's w
 initialise <- function(dset){
 	datapoints = length(dset$feat1);
 	x0 = matrix(rep(1,datapoints),nrow=1,ncol=datapoints);
@@ -51,6 +55,7 @@ initialise <- function(dset){
 	return (list(feat=x,class=y,weights=w));
 }
 
+#function that implements the perceptron
 learn <- function(ip,limit){
 	x = ip$feat;
 	w = ip$weights;
@@ -77,6 +82,10 @@ learn <- function(ip,limit){
 	return (list(w=w,iter=iter,err=num_errors/total_points));
 }
 
+#a kind of "main" function which: 
+#(i) generates the data set, and calls the perceptron
+#(ii) gives the equation of the learnt line
+#(iii) calculates the theoretical maximum iterations t
 perceptron <- function(datapoints,m,c,gamma){
 	dset <- dataset(datapoints,m,c,gamma);
 	p <- initialise(dset);
@@ -92,7 +101,6 @@ perceptron <- function(datapoints,m,c,gamma){
 	w_star <- sum(learnt$w^2); 
 	t <- (R_sq*w_star^2)/(rho^2);
 	
-
 	return (list(coeff1=a,coeff2=b,iter=learnt$iter,t=t,rho=rho,w=learnt$w,dset=dset,line=x2)); 
 }
 
