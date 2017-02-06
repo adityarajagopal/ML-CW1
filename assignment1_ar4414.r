@@ -5,38 +5,38 @@ source('question_3c.r')
 
 main <- function(){
 	#q3a (y = 3x + 0.2)
-	#N <- c(2,4,10,100);
-	#for (n in N){
-	#	pdf(paste0('q3a_graphs/q3a_',n,'.pdf'));
-	#	q3a <- perceptron(n,3,0.2,0);
-	#	dset <- q3a$dset; 
-	#	plot(dset$feat1,dset$feat2,col=dset$col,main=paste0('Samples: ',n),xlab='Feature 1',ylab='Feature 2');
-	#	lines(dset$feat1,q3a$line,col='red');
-	#	lines(dset$feat1,dset$orig,col='blue');
-	#	#lines(x1,dset$upper,col='blue');
-	#	#lines(x1,dset$lower,col='red');
-	#}
+	N <- c(2,4,10,100);
+	for (n in N){
+		pdf(paste0('q3a_graphs/q3a_',n,'.pdf'));
+		q3a <- perceptron(n,3,0.2,0);
+		dset <- q3a$dset; 
+		plot(dset$feat1,dset$feat2,col=dset$col,main=paste0('Samples: ',n),xlab='Feature 1',ylab='Feature 2');
+		lines(dset$feat1,q3a$line,col='red');
+		lines(dset$feat1,dset$orig,col='blue');
+		#lines(x1,dset$upper,col='blue');
+		#lines(x1,dset$lower,col='red');
+	}
 	
 	#q3b(2) run 1 iter for 100,200,300,400,500
-	#pdf(paste0('q3b_graphs/q3b(2).pdf'));
-	#q3b2 <- train(1,100,0);
-	#plot(q3b2$sample_size,q3b2$e,main='Test Error',xlab='Sample Size',ylab='Error Probability',type='o');
+	pdf(paste0('q3b_graphs/q3b(2).pdf'));
+	q3b2 <- train(1,100,0);
+	plot(q3b2$sample_size,q3b2$e,main='Test Error',xlab='Sample Size',ylab='Error Probability',type='o');
 	
 	##q3b(3) 100 iterations of each above
-	#pdf(paste0('q3b_graphs/q3b(3).pdf'));
-	#q3b3 <- train(100,100,0);
-	#error <- q3b3$e_s; 
-	#epsilon <- q3b3$epsilon;
-	#sample_size <- q3b3$sample_size;
-	#generate_plot(error,epsilon,sample_size,0);
+	pdf(paste0('q3b_graphs/q3b(3).pdf'));
+	q3b3 <- train(100,100,0);
+	error <- q3b3$e_s; 
+	epsilon <- q3b3$epsilon;
+	sample_size <- q3b3$sample_size;
+	generate_plot(error,epsilon,sample_size,0);
 
 	#q3b(42) run for different gammas 1 iteration
-	#gamma <- c(0.3,0.1,0.01,0.001);
-	#for (g in gamma){
-	#	pdf(paste0('q3b_graphs/q3b(42)_',g,'.pdf'));
-	#	q3b2 <- train(1,100,g);
-	#	plot(q3b2$sample_size,q3b2$e,main=paste0('Test Error (gamma=',g,')'),xlab='Sample Size',ylab='Error Probability',type='o');
-	#}
+	gamma <- c(0.3,0.1,0.01,0.001);
+	for (g in gamma){
+		pdf(paste0('q3b_graphs/q3b(42)_',g,'.pdf'));
+		q3b2 <- train(1,100,g);
+		plot(q3b2$sample_size,q3b2$e,main=paste0('Test Error (gamma=',g,')'),xlab='Sample Size',ylab='Error Probability',type='o');
+	}
 	
 	#q3b(43) run for different gammas 1 iteration
 	gamma <- c(0.3,0.1,0.01,0.001);
@@ -56,7 +56,7 @@ main <- function(){
 	}
 
 	#q3c all graphs and data
-	#q3c_main();
+	q3c_main();
 }
 
 generate_plot <- function(error,epsilon,sample_size,gamma){
@@ -86,6 +86,5 @@ generate_plot <- function(error,epsilon,sample_size,gamma){
 		lines(lowess(sample_size,hoeff_95),col='purple');	
 	}
 }
-
-main()
+main();
 

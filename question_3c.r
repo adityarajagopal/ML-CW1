@@ -151,7 +151,7 @@ q3c_main <- function(){
 	test_feat <- initialise1('data/features.test');
 	learn_feat <- learn2(train_feat,1000);
 	learn_feat_old <- learn1(train_feat,1000);
-	test_error_feat <- test_hypothesis_old(learn_feat$w,test_feat$feat,test_raw$class,learn_feat$w_log);
+	test_error_feat <- test_hypothesis_old(learn_feat$w,test_feat$feat,test_feat$class,learn_feat$w_log);
 	test_error_feat_old <- test_hypothesis_old(learn_feat_old$w,test_feat$feat,test_feat$class,learn_feat_old$w_log);
 	
 	#initialise weights for features using linear regression
@@ -169,6 +169,8 @@ q3c_main <- function(){
 	print ('Feat test error :'); print(test_error_feat$e_percent);
 	print ('Feat training error (w) :'); print(learn_feat_w$error);
 	print ('Feat test error (w) :'); print(test_error_feat_w$e_percent);
+	print ('Raw data w :'); print(learn_raw$w);
+	print ('Feature data w :'); print(learn_feat$w);
 	
 	
 	pdf('q3c_graphs/q3c_21.pdf');
